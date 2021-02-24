@@ -1,0 +1,1400 @@
+{% extends "new_base.html" %}
+{% load static %}
+{% load catalog_filters %}
+{% load i18n %}
+{% block CSS %}
+    <link defer rel="stylesheet" type="text/css" href="{% static category_page_custom %}" />
+{% endblock %}
+{% block title %}Best {{category.label}} of 2021 - Bestviewsreviews{% endblock %}
+
+{% block canonical_tags %}
+    <link rel="canonical" href="https://{{ current_site }}{% url 'category-detail-slug-view' category.category_slug %}" />
+{% endblock %}	
+
+{% block meta %}
+
+    {% if request.GET.feature %}
+        <meta name="robots" content="noindex, nofollow" />
+    {% else %}
+        <meta name="robots" content="index, follow" />
+    {% endif %}
+    {% if category.meta_keywords %}
+    <meta name="keywords" content="{{ category.meta_keywords }}"/>
+    {% else %}
+    <meta name="keywords" content="{{'Best '|add:category.label }}, {{'Top 10 '|add:category.label }}, top performing products for {{category.label}}, {% spaceless %}{% for product in products %}{% spaceless %}{% if forloop.last %}{{product}}{% else %}{{product}}, {% endif %}{% endspaceless %}{% endfor %}{% endspaceless %} "/>
+    {% endif %}
+    {% if category.meta_desc %}
+        <meta name="description" content="{{ category.meta_desc }}">
+    {% else %}
+        <meta name="description" content="{{category.total_reviews}} product reviews analyzed for {{category.label}} and the best {{top_text}} products searched!">
+    {% endif %}
+    <meta content='on' http-equiv='x-dns-prefetch-control'>
+    <meta content='en-US' http-equiv='Content-Language'>
+    <meta content='width=device-width, initial-scale=1' name='viewport'>
+    <meta content='#00113d' name='theme-color'>
+    <meta content='Top {{top_text}} {{category.label}} - Bestviewsreviews' name='title'>
+    {% if category_products_top.0.productImg.large_image_snippet %}
+    <meta content="{{category_products_top.0.productImg.large_image_snippet}}" property="og:image" />
+    <meta name="twitter:image" content="{{category_products_top.0.productImg.large_image_snippet}}" />
+    {% else %}
+    <meta content="{{category_products_top.0.large_image_snippet}}" property="og:image" />
+    <meta name="twitter:image" content="{{category_products_top.0.large_image_snippet}}" />
+    {% endif %}
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="Bestviewsreviews" />
+    <meta content='Bestviewsreviews' property='og:site_name'>
+    <meta content="{% url 'category-detail-slug-view' category.category_slug %}" name='twitter:url' />
+    <meta content="{% url 'category-detail-slug-view' category.category_slug %}" property='og:url'>
+    <meta content='Top {{top_text}} {{category.label}} - Bestviewsreviews' property='og:title'>
+    <meta content='Top {{top_text}} {{category.label}} - Bestviewsreviews' name='twitter:title' />
+    <meta content='article' property='og:type'>
+    {% if category.meta_desc %}
+    <meta content='{{ category.meta_desc }}' property='og:description'>
+    {% else %}
+    <meta content='Bestviewsreviews analyzed {{rounded_no_of_reviews}} user reviews for various {{category.label}}. {{category_features|length}} things that you should consider while buying the {{category.label}} are - {{category_feature_for_meta}}.' property='og:description'>
+    {% endif %}
+    {% if category.meta_desc %}
+    <meta content='{{ category.meta_desc }}' name='twitter:description' />
+    {% else %}
+    <meta content='Bestviewsreviews analyzed {{rounded_no_of_reviews}} user reviews for various {{category.label}}. {{category_features|length}} things that you should consider while buying the {{category.label}} are - {{category_feature_for_meta}}.' name='twitter:description' />
+    {% endif %}
+    <meta content='direct' name='traffic-type'>
+    <meta content='US' name='locale'>
+    <meta content='en-US' name='culture'>
+    <meta content='$' name='currency'>
+    <meta content='{{category.id}}' name ='current-category-id'>
+{% endblock %}
+
+
+{% block schema %}
+    <script type="application/ld+json">
+        {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "url": "http://{{ current_site }}",
+        "logo": "https://{{ current_site }}/static/catalog/images/logo.svg"
+        }
+    </script>
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            "itemListElement" : [ 
+                                    {"@type": "ListItem", "position": 1, "name": "home", "item": "https://{{ current_site }}"}, 
+                                    {"@type": "ListItem", "position": 2, "name": "{{category.label}}", "item": "https://{{ current_site }}{% url 'category-detail-slug-view' category.category_slug %}"}
+            ]
+        }
+    </script>
+    <script type="application/ld+json">
+        {
+            "@context": "http://schema.org",
+            "@type": "ItemList",
+            "itemListElement": [
+                {% spaceless %}{% for products in category_products %}
+                    {% if forloop.last %}
+                        {
+                            "@type": "ListItem",
+                            "position": {{products.product.rank}},
+                            "url": "https://{{ current_site }}{% url 'product-detail-slug-view' category.category_slug products.product.product_slug %}",
+                            "name": "{{products.product.name}}"
+                        }
+                    {% else %}
+                        {
+                            "@type": "ListItem",
+                            "position": {{products.product.rank}},
+                            "url":"https://{{ current_site }}{% url 'product-detail-slug-view' category.category_slug products.product.product_slug %}",
+                            "name": "{{products.product.name}}"
+                        },
+                    {% endif %}
+                {% endfor %}{% endspaceless %}
+            ]
+        }
+    </script>
+{% endblock %}
+
+
+{% block header %}    
+    <section class="desktop-nav categroy-page-desktop-nav" style="background-color: #2b3541;">
+       
+            <div class="twelve-division" style="grid-column: 1/15; padding: 24px 0px 27px 0px; background-color: #2b3541; max-width: 1500px;margin: auto;">
+                {% include "new_navbar_desktop.html" %}
+            </div>
+    </section>
+
+
+    <section class="mobile-nav product-mobile-nav four-division">
+        {% include "new_navbar_mobile.html" %}   
+    </section>
+    <section class="mobile-nav category-page-mobile-nav four-division " style="background-color: #ffffff; padding: initial;">
+        
+        {% comment %} <hr class="head-nav-separator"> {% endcomment %}
+      
+        <div class="category-best-text">
+            <h1>Best {{category.label}} of 2021 </h1>
+            
+        </div>
+
+        <div class="category-updated-on-text">
+            <p>Updated on <span id="category-updated-on-text-date-mob">{{category.updated_at|date:"F j, Y"}}</span></p>
+        </div>
+
+        <div class="category-generated_from_text">
+            <p style="color: #5b636d;">Generated from <span>{{category.total_reviews|rounddown}} reviews</span> based on
+                {% spaceless %}
+                {% for feature, product_list in feature_wise_top_products.items %}
+
+                {%if forloop.counter%}
+                    <a href="?feature={{feature.name}}" style="outline: none; text-decoration: none; " {% ifequal request.GET.feature feature.name %} class="bold-active" {% endifequal %}>{{feature.name |lower|capfirst}}</a>{% spaceless %}
+                    {%if not forloop.last%},{%endif%}{% endspaceless %}
+                {%endif%}
+                {% endfor %}
+                {% endspaceless %}
+            
+            
+            
+            </p>
+        </div>
+        <section class="new-category slideshow-container" id="container">
+
+        {% if category_products.0.product %}
+        <div class="new-section-category new-category mySlides fade" ontouchmove="currentSlide(2)">
+        <div class="image-card">
+            <a class="image-a-card" href="{% url 'product-detail-slug-view' category_products_top.0.product.category.category_slug category_products_top.0.product.product_slug %}">
+            <div class="rank-card rank-card-cat">
+                <span class="rank-text">RANK</span>
+                <p class="product-rank"><span class="hash">#</span>1</p>
+            </div>
+           
+            <p class="category-image-name">{% if category_products_top.0.product.label %}{{category_products_top.0.product.label|wordwrap:45}}{% else %}{{category_products_top.0.product.name|wordwrap:45}}{% endif %}</p>
+            </a>
+        </div>
+
+        <div class="category-image">
+            <!-- <a href="{% url 'product-detail-slug-view' category_products_top.0.product.category.category_slug category_products_top.0.product.product_slug %}"> -->
+            <img src="{% if category_products_top.0.productImg.large_image_snippet %}{{category_products_top.0.productImg.large_image_snippet}}
+            {% elif category_products_top.0.large_image_snippet %}{{category_products_top.0.large_image_snippet}}
+            {% else %}{% static 'catalog/images/no-image.png' %}{% endif %}" onerror="error(this,'error')" class="Mockup" onclick="window.open('{{category_products_top.0.product.buy_url}}')" style="cursor: pointer;" alt="product-image-alt">
+                <!-- </a> -->
+        </div>
+        </div>
+        {% endif %}
+        
+        {% if category_products_top.1.product %}
+        <div class="new-section-category new-category second-category mySlides fade" ontouchmove="currentSlide(3)">
+        <div class="image-card">
+            <a href="{% url 'product-detail-slug-view' category_products_top.1.product.category.category_slug category_products_top.1.product.product_slug %}">
+            <div class="rank-card rank-card-cat">
+                <span class="rank-text">RANK</span>
+                <p class="product-rank"><span class="hash">#</span>2</p>
+            </div>
+            <p class="category-image-name">{% if category_products_top.1.product.label %}{{category_products_top.1.product.label|wordwrap:45}}{% else %}{{category_products_top.1.product.name|wordwrap:45}}{% endif %}</p>
+            </a>
+        </div>
+
+        <div class="category-image">
+            <!-- <a href="{% url 'product-detail-slug-view' category_products_top.1.product.category.category_slug category_products_top.1.product.product_slug %}"> -->
+            <img src="{% if category_products_top.1.productImg.large_image_snippet %}{{category_products_top.1.productImg.large_image_snippet}}
+            {% elif category_products_top.1.large_image_snippet %}{{category_products_top.1.large_image_snippet}}
+            {% else %}{% static 'catalog/images/no-image.png' %}{% endif %}"onerror="error(this,'error')"  class="Mockup" onclick="window.open('{{category_products_top.1.product.buy_url}}')" style="cursor: pointer;" alt="product-image-alt">
+                <!-- </a> -->
+        </div>
+        </div>
+        {% endif %}
+
+        {% if category_products_top.2.product %}
+        <div class="new-section-category new-category mySlides fade" ontouchmove="currentSlide(1)">
+        <div class="image-card">
+            <a href="{% url 'product-detail-slug-view' category_products_top.2.product.category.category_slug category_products_top.2.product.product_slug %}">
+            <div class="rank-card rank-card-cat">
+                <span class="rank-text">RANK</span>
+                <p class="product-rank"><span class="hash">#</span>3</p>
+            </div>
+            <p class="category-image-name">{% if category_products_top.2.product.label %}{{category_products_top.2.product.label|wordwrap:45}}{% else %}{{category_products_top.2.product.name|wordwrap:45}}{% endif %}</p>
+            </a>
+        </div>
+
+        <div class="category-image">
+            <!-- <a href="{% url 'product-detail-slug-view' category_products_top.2.product.category.category_slug category_products_top.2.product.product_slug %}"> -->
+            <img src="{% if category_products_top.2.productImg.large_image_snippet %}{{category_products_top.2.productImg.large_image_snippet}}
+            {% elif category_products_top.2.large_image_snippet %}{{category_products_top.2.large_image_snippet}}
+            {% else %}{% static 'catalog/images/no-image.png' %}{% endif %}" onerror="error(this,'error')" class="Mockup" onclick="window.open('{{category_products_top.2.product.buy_url}}')" style="cursor: pointer;" alt="product-image-alt">
+                <!-- </a> -->
+        </div>
+        </div>
+        {% endif %}
+
+        
+    
+        </section>
+      
+        <br>
+
+<!-- The dots/circles -->
+        <div class="dot-category" >
+        <span class="dot" onclick="currentSlide(1)"></span>
+        <span class="dot" onclick="currentSlide(2)"></span>
+        <span class="dot" onclick="currentSlide(3)"></span>
+        </div>
+
+<!-- 
+
+        
+        <div class="category-page-header-features">
+            <ul>
+                {% spaceless %}
+                    {% for feature, product_list in feature_wise_top_products.items %}
+                    {% with product_list=product_list_init|remove_null %}
+                    <a href="?feature={{feature.name}}" style="outline: none; text-decoration: none; "><li {% ifequal request.GET.feature feature.name %} class="active" {% endifequal %}>{% if feature.feature_icon %}<img src="{{feature.feature_icon}}">{% else %} <img src="{% static 'catalog/images/ic-satisfaction.png' %}" alt="{{feature.name}}"> {% endif %}{{feature.name}}</li></a>
+                    {% endwith %}
+                    {% endfor %}
+                {% endspaceless %}
+            </ul>
+        </div> -->
+
+
+
+
+
+        
+    </section>
+    <section style="background-color: white;">
+        
+        <section class="twelve-division head-nav category-head-nav desktop-nav" style="background-color: #ffffff; padding: initial; max-width: 1500px;margin: auto;"> 
+            <div class="category-breadcrumbs" style="white-space: nowrap;">
+                <ul>
+                    <li><a href="/">Home</a></li>
+                    <li>></li>
+                    <li>{{category.label}}</li>
+                </ul>
+            </div>
+            {% comment %} <hr class="head-nav-separator head-category">  {% endcomment %}
+            
+            <div class="category-best-text">
+                <h1>Best {{category.label}} of 2021 </h1><span> Updated on <span id="category-updated-on-text-date">{{category.updated_at|date:"F j, Y"}}</span></span>
+                
+            </div>
+
+            <!-- <div class="category-updated-on-text">
+                <p>Updated on <span id="category-updated-on-text-date">{{category.updated_at|date:"F j, Y"}}</span></p>
+            </div> -->
+
+            <div class="category-generated_from_text">
+                <p style="color: #5b636d;">Generated from <span>{{category.total_reviews|rounddown}} reviews</span> based on
+                    {% spaceless %}
+                    {% for feature, product_list in feature_wise_top_products.items %}
+                    {%if forloop.counter%}
+                    <a href="?feature={{feature.name}}" style="outline: none; text-decoration: none; " {% ifequal request.GET.feature feature.name %} class="bold-active" {% endifequal %}>{{feature.name |lower|capfirst}}</a>{% spaceless %}
+                        {%if not forloop.last%}
+                        ,
+                        {%endif%}{% endspaceless %}
+                    {%endif%}
+                    {% endfor %}
+                    {% endspaceless %}
+                
+                
+                
+                </p>
+            </div>
+
+            <!-- <div class="category-page-header-features">
+                <ul>
+                {% spaceless %}
+                    {% for feature, product_list in feature_wise_top_products.items %}
+                        {% with product_list=product_list_init|remove_null %}
+                        <a href="?feature={{feature.name}}" style="outline: none; text-decoration: none; "><li {% ifequal request.GET.feature feature.name %} class="active" {% endifequal %}>{% if feature.feature_icon %}<img src="{{feature.feature_icon}}">{% else %} <img src="{% static 'catalog/images/ic-satisfaction.png' %}" alt="{{feature.name}}"> {% endif %}{{feature.name}}</li></a>
+                        {% endwith %}
+                    {% endfor %}
+                {% endspaceless %}
+                </ul>
+            </div> -->
+
+
+                <section class="new-category category-desktop" id="container">
+                {% if category_products_top.0.product %}
+                <div class="new-section-category new-category first-category" >
+                <div class="image-card">
+                    <a href="{% url 'product-detail-slug-view' category_products_top.0.product.category.category_slug category_products_top.0.product.product_slug %}">
+                    <div class="rank-card">
+                        <span class="rank-text">RANK</span>
+                        <p class="product-rank"><span class="hash">#</span>1</p>
+                    </div>
+                    <p class="category-image-name">{% if category_products_top.0.product.label %}{{category_products_top.0.product.label|wordwrap:45}}{% else %}{{category_products_top.0.product.name|wordwrap:45}}{% endif %}</p>
+                </a>
+                </div>
+
+                <div class="category-image" >
+                    <!-- <a href="{% url 'product-detail-slug-view' category_products_top.0.product.category.category_slug category_products_top.0.product.product_slug %}"> -->
+                        <img src="{% if category_products_top.0.productImg.large_image_snippet %}{{category_products_top.0.productImg.large_image_snippet}}
+                        {% elif category_products_top.0.large_image_snippet %}{{category_products_top.0.large_image_snippet}}
+                        {% else %}{% static 'catalog/images/no-image.png' %}{% endif %}" onerror="error(this,'error')" class="Mockup" onclick="window.open('{{category_products_top.0.product.buy_url}}')" style="cursor: pointer;" alt="product-image-alt">
+                        <!-- </a> -->
+                    </div>
+                    </div>
+                    {% endif %}
+                
+                {% if category_products_top.1.product %}
+                <div class="new-section-category new-category second-category">
+                <div class="image-card">
+                    <a href="{% url 'product-detail-slug-view' category_products_top.1.product.category.category_slug category_products_top.1.product.product_slug %}">
+                    <div class="rank-card">
+                        <span class="rank-text">RANK</span>
+                        <p class="product-rank"><span class="hash">#</span>2</p>
+                    </div>
+                    <p class="category-image-name">{% if category_products_top.1.product.label %}{{category_products_top.1.product.label|wordwrap:45}}{% else %}{{category_products_top.1.product.name|wordwrap:45}}{% endif %}</p>
+                    </a>
+                </div>
+
+                <div class="category-image">
+                    <!-- <a href="{% url 'product-detail-slug-view' category_products_top.1.product.category.category_slug category_products_top.1.product.product_slug %}"> -->
+                    <img src="{% if category_products_top.1.productImg.large_image_snippet %}{{category_products_top.1.productImg.large_image_snippet}}
+                    {% elif category_products_top.1.large_image_snippet %}{{category_products_top.1.large_image_snippet}}
+                    {% else %}{% static 'catalog/images/no-image.png' %}{% endif %}" onerror="error(this,'error')" class="Mockup" onclick="window.open('{{category_products_top.1.product.buy_url}}')" style="cursor: pointer;" alt="product-image-alt">
+                <!-- </a> -->
+                </div>
+                </div>
+                {% endif %}
+
+
+                {% if category_products_top.2.product %}
+                <div class="new-section-category new-category third-category" >
+                <div class="image-card">
+                    <a href="{% url 'product-detail-slug-view' category_products_top.2.product.category.category_slug category_products_top.2.product.product_slug %}">
+                    <div class="rank-card">
+                        <span class="rank-text">RANK</span>
+                        <p class="product-rank"><span class="hash">#</span>3</p>
+                    </div>
+                    <p class="category-image-name">{% if category_products_top.2.product.label %}{{category_products_top.2.product.label|wordwrap:45}}{% else %}{{category_products_top.2.product.name|wordwrap:45}}{% endif %}</p>
+              </a>
+                </div>
+
+                <div class="category-image">
+                    <!-- <a href="{% url 'product-detail-slug-view' category_products_top.2.product.category.category_slug category_products_top.2.product.product_slug %}"> -->
+                    <img src="{% if category_products_top.2.productImg.large_image_snippet %}{{category_products_top.2.productImg.large_image_snippet}}{% elif category_products_top.2.large_image_snippet %}{{category_products_top.2.large_image_snippet}}{% else %}{% static 'catalog/images/no-image.png' %}{% endif %}" onerror="error(this,'error')" class="Mockup" onclick="window.open('{{category_products_top.2.product.buy_url}}')" style="cursor: pointer;" alt="product-image-alt">
+                <!-- </a> -->
+                </div>
+                </div>
+                {% endif %}
+            
+                </section>
+
+
+                
+            <!-- {% comment %} {% if category_products.1.productImg.large_image_snippet and category_products.1.productImg.large_image_snippet == 'https://s3-us-west-2.amazonaws.com/data.bestviewsreviews.com/CATEGORY_IMG/no-image.jpg' %}
+                <div class="image-card">
+                    <div class="rank-card">
+                        <span class="rank-text">RANK</span>
+                        <p class="product-rank"><span class="hash">#</span>{% category_page_rank_product page_num page_len 1 %}</p>
+                    </div>
+                    <p class="category-image-name">{% if category_products.0.product.label %}{{category_products.0.product.label|wordwrap:45}}{% else %}{{category_products.0.product.name|wordwrap:45}}{% endif %}</p>
+                </div>
+
+                <div class="category-image">
+                    <img src="{{category_products.1.productImg.large_image_snippet}}" class="Mockup">
+                </div>
+                {% endif %} {% endcomment %} -->
+
+        </section>
+    </section>
+        
+    
+    
+{% endblock %}
+
+{% block maincontent %}
+    <section class="main-content" >
+    
+        <div class="category-browse-by twelve-division desktop-category-browse" style="max-width: 1500px;margin-left: auto;margin-right: auto;">
+            <script>
+                var screen_width = screen.width;
+                var var_for_guage = 1;
+                var color_code = '#40cd85';
+            </script>
+        
+            <p class="browse-by-mob">Browse by</p>
+            <ul class="new-more">
+                <p class="browse-by-desk">Browse by </p>
+                <a href="/{{category.category_slug}}" id="link1" style="outline: none; text-decoration: none;"><li {% ifequal request.GET.feature None %} class="active" {% endifequal %}>All ({{total_number_of_products_in_category}})</li></a>
+                {% if assortments %}
+                    {% spaceless %}
+                        {% for child in assortments %}
+                                <a href="{% url 'child-category-detail-slug-view' child.category.category_slug child.child_category_slug %}" style="outline: none; text-decoration: none; "><li>{{child.label |lower|capfirst}}</li></a>
+                        {% endfor %}
+                        
+                    {% endspaceless %}
+                {% else %}
+                    {% spaceless %}
+                    {% for feature, product_list_init in feature_wise_top_products.items%}
+                    {% if forloop.counter <= 6 %}
+                    {% with product_list=product_list_init|remove_null %}
+                    <a href="?feature={{feature.name}}" style="outline: none; text-decoration: none; "><li {% ifequal request.GET.feature feature.name %} class="active" {% endifequal %}>{{feature.name |lower|capfirst}}</li></a>
+                    {% endwith %}
+                    
+                    {% elif forloop.counter == 7 and feature_wise_top_products.items|length > 6 %}
+                    <a id="category-seemore" href="javascript:seemorefeat();" style="outline: none; text-decoration: none; display: block "><li style="color: #2787f4 ;"> More</li></a>
+                    {% with product_list=product_list_init|remove_null %}
+                    <a class="inactive-feat" href="?feature={{feature.name}}" style="outline: none; text-decoration: none;visibility:hidden; display: none  "><li  {% ifequal request.GET.feature feature.name %} class="active" {% endifequal %}>{{feature.name |lower|capfirst}}</li></a>
+                    {% endwith %}
+                    {% elif forloop.counter > 7 %}
+                    {% with product_list=product_list_init|remove_null %}
+                    <a class="inactive-feat" href="?feature={{feature.name}}" style="outline: none; text-decoration: none; visibility: hidden; display: none ;"><li {% ifequal request.GET.feature feature.name %} class="active" {% endifequal %}>{{feature.name |lower|capfirst}}</li></a>
+                    {% endwith %}
+                    
+                    {% endif %}
+                    
+                    {% endfor %}
+                    <a id="category-seeless" href="javascript:seelessfeat();" style="outline: none; text-decoration: none; visibility: hidden ; display: none "><li style="color: #2787f4 ;"> Less</li></a>
+
+                    {% endspaceless %} 
+                    {% endif %}
+
+               
+
+            </ul>
+          
+        </div>
+           
+           
+        <!-- <div class="category-browse-by twelve-division smartphone-category-browse cat-browse"  style="max-width: 1500px;margin-left: auto;margin-right: auto;display: none;" >
+            <p class="browse-by-mob">Browse by</p>
+            <ul class="new-more">
+                <p class="browse-by-desk">Browse by</p>
+                <a href="/{{category.category_slug}}" id="link1" style="outline: none; text-decoration: none;"><li {% ifequal request.GET.feature None %} class="active" {% endifequal %}>All ({{total_number_of_products_in_category}})</li></a>
+                {% if assortments %}
+                    {% spaceless %}
+                        {% for child in assortments %}
+                                <a href="{% url 'child-category-detail-slug-view' child.category.category_slug child.child_category_slug %}" style="outline: none; text-decoration: none; "><li {% ifequal request.GET.feature child.label %} class="active" {% endifequal %}>{{child.label}}</li></a>
+                        {% endfor %}
+                        
+                    {% endspaceless %}
+               
+                {% else %}
+                {% spaceless %}
+                {% for feature, product_list_init in feature_wise_top_products.items%}
+                {% if forloop.counter <= 4 %}
+                {% with product_list=product_list_init|remove_null %}
+                <a href="?feature={{feature.name}}" style="outline: none; text-decoration: none; "><li {% ifequal request.GET.feature feature.name %} class="active" {% endifequal %}>{{feature.name}}</li></a>
+                {% endwith %}
+                
+                {% elif forloop.counter == 5 and feature_wise_top_products.items|length > 4 %}
+                <a id="category-seemore-mobile" href="javascript:seemorefeatmobile();" style="outline: none; text-decoration: none; display: block "><li style="color: #2787f4 ;"> More</li></a>
+                {% with product_list=product_list_init|remove_null %}
+                <a class="inactive-feat-mobile" href="?feature={{feature.name}}" style="outline: none; text-decoration: none;visibility:hidden; display: none  "><li  {% ifequal request.GET.feature feature.name %} class="active" {% endifequal %}>{{feature.name}}</li></a>
+                {% endwith %}
+                {% elif forloop.counter > 5 %}
+                {% with product_list=product_list_init|remove_null %}
+                <a class="inactive-feat-mobile" href="?feature={{feature.name}}" style="outline: none; text-decoration: none; visibility: hidden; display: none ;"><li {% ifequal request.GET.feature feature.name %} class="active" {% endifequal %}>{{feature.name}}</li></a>
+                {% endwith %}
+                
+                {% endif %}
+                
+                {% endfor %}
+                <a id="category-seeless-mobile" href="javascript:seelessfeatmobile();" style="outline: none; text-decoration: none; visibility: hidden ; display: none "><li style="color: #2787f4 ;"> Less</li></a>
+
+                {% endspaceless %} 
+                {% endif %}
+            </ul>
+           
+        </div> -->
+        
+
+   
+
+
+
+        <div class="category-top-3-products twelve-division" style="max-width: 1500px;margin: auto;">
+            {% spaceless %}
+                {% for products in category_products|slice:3 %}
+                    <article class="product-div category-top-product-{{forloop.counter}} top-product-{{forloop.counter}} category-product-div">
+                        
+                        <div class="rank-card card-category">
+	                            <span class="rank-text card-category-text">RANK</span>
+	                            <p class="product-rank card-category-rank"><span class="hash card-category-hash">#</span>{% category_page_rank_product page_num page_len forloop.counter %}</p>
+                      </div>
+                        <div class="product-image category-page-product-image">
+                            <img src="{% if products.productImg.large_image_snippet %}{{products.productImg.large_image_snippet}}{% elif products.large_image_snippet %}{{products.large_image_snippet}}{% else %}{% static 'catalog/images/no-image.png' %}{% endif %}" onerror="error(this,'error')" alt="Image of {{products.product.name|wordwrap:30}}: Bestviewsreviews"  onclick="window.open('{{products.product.buy_url}}')" style="cursor: pointer;">
+                        </div>
+        
+                        <div class="product-general-info">
+                            <a href="{% url 'product-detail-slug-view' category.category_slug products.product.product_slug %}" style="text-decoration: none;"><h2 class="product-name cat-product" title="{{products.product.name}}" style="text-overflow: ellipsis;
+                                display: -webkit-box;
+                                -webkit-line-clamp: 3;
+                                -webkit-box-orient: vertical;
+                                overflow: hidden;">{% if products.product.label %}{{products.product.label|wrapByWord:"15,100"}}{% else %}{{products.product.name|wrapByWord:"15,100"}}{% endif %}</h2></a>
+                            <!-- <div class="product-feature">3GB RAM, AMOLED Display, 32GB Storage, 4000mAH</div> -->
+
+
+                            <!-- <div class="product-feature category-feature">
+                                {% if products.product.specification %}
+                                {{products.product.specification|safe|wordwrap:60}}
+                                {% endif %}
+                            </div> -->
+                            
+                            <div class="product-price">{% if products.product.price %}{{products.product.price}}{% else %} Price NA {% endif %}</div>
+                            <div class="buy-now-compare">
+                                <a href="{{products.product.buy_url}}" target="_blank"><button type="button" class="btn btn-primary">Buy on Amazon*</button></a>
+                                <!-- <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="defaultChecked2">
+                                    <label class="custom-control-label" for="defaultChecked2">Add to Compare</label>
+                                </div> -->
+                            </div>
+                        </div>
+                        
+                        <div class="overall-score category-page-overall-score">
+                            <div class="guage-box category-page-guage-box">
+                                <div id="g{{forloop.counter|add:4}}" class="gauge gauge-1">
+                                {{ gauge_overall|svg_value:products.product.score_out_of_10 | safe}}
+                                </div>
+                            </div>
+                            {% comment %} <script>
+                                var score_product = {{products.product.score_out_of_10|floatformat:1}};
+                                if (score_product <= 3.3 ) {
+                                    color_code = '#ff6060';
+                                } else if (score_product > 3.3 && score_product < 6.7) {
+                                    color_code = '#fbad05';
+                                } else {
+                                    color_code = '#40cd85';
+                                }
+                                var g1 = new JustGage({
+                                    id: 'g{{forloop.counter|add:4}}',
+                                    value: {{products.product.score_out_of_10}},
+                                    decimals: 1,
+                                    valueFontColor: '#000000',
+                                    valueMinFontSize: 60,
+                                    min: 0,
+                                    max: 10,
+                                    pointerOptions: {
+                                    toplength: 8,
+                                    bottomlength: -20,
+                                    bottomwidth: 6,
+                                    color: color_code,
+                                    
+                                    },
+                                    gaugeWidthScale: 0.4,
+                                    counter: true,
+                                    relativeGaugeSize: true,
+                                    donut: true,
+                                    levelColors: [color_code],
+                                });
+                            </script> {% endcomment %}
+                            <div class="overall-text cat-overall">Overall BVR Rating <br/>
+                                <div class="number-of-reviews">
+                                    <span>Based on {{products.product.total_reviews_count}} reviews</span>
+                                </div>
+                            </div>
+                        </div>
+        
+                        <div class="product-other-info category-page-product-other-info">
+                            <div class="product-features cat-feat">
+                                {% spaceless %}
+                                    {% ifnotequal request.GET.feature None %}
+                                        {% with feature_score_dict=products.product.features|make_dict:request.GET.feature %}
+                                            {% for feature, score in feature_score_dict.items %}
+                                                <div class="feature category-page-product-feature product-feature-{{forloop.counter}}">
+                                                    <div class="feature-product-{{forloop.counter}} feature-name">{{feature | lower | capfirst}}</div>
+                                                            
+                                                    <div class="feature-product-{{forloop.counter}}-rating rating category-page-rating">
+                                                    <p style="margin-bottom: 0; margin-right: 0.7rem; {% if score <= 3.3 %} color: #ff6060; {% elif score > 3.3 and score <= 6.7 %} color: #fbad05; {% else %} color: #40cd85; {% endif %}">{{score}}</p>
+                                                        <div class="guage-box feature-guage-box">
+                                                            <div id="g{{products.product.pk}}{{forloop.counter|add:1000}}" class="gauge gauge-1">
+                                                            {{ gauge_feature|svg_value:score | safe}}
+                                                            </div>
+                                                        </div>
+                                                        {% comment %} <script>
+                                                            var score_product = {{score|floatformat:1}}
+                                                            if (score_product <= 3.3 ) {
+                                                                color_code = '#ff6060';
+                                                            } else if (score_product > 3.3 && score_product <= 6.7) {
+                                                                color_code = '#fbad05';
+                                                            } else {
+                                                                color_code = '#40cd85';
+                                                            }
+                                                            var g1 = new JustGage({
+                                                                id: 'g{{products.product.pk}}{{forloop.counter|add:1000}}',
+                                                                value: {{score}},
+                                                                decimals: 1,
+                                                                valueFontColor: '#000000',
+                                                                valueMinFontSize: 60,
+                                                                min: 0,
+                                                                max: 10,
+                                                                pointerOptions: {
+                                                                toplength: 8,
+                                                                bottomlength: -20,
+                                                                bottomwidth: 6,
+                                                                color: color_code,
+                                                                
+                                                                },
+                                                                gaugeWidthScale: 0.4,
+                                                                counter: false,
+                                                                relativeGaugeSize: true,
+                                                                donut: true,
+                                                                levelColors: [color_code],
+                                                                hideValue: true,
+                                                                relativeGaugeSize: true,
+                                                                gaugeWidthScale: 1.2,
+                                                            });
+                                                        </script> {% endcomment %}
+                                                    </div>
+                                                    
+                                                </div>
+                                            {% endfor %}
+                                        {% endwith %}
+                                    {% else %}
+                                        {% with feature_score_dict=products.product.features|make_dict:'' %}
+                                        {% for feature, score in feature_score_dict.items %}
+                                            <div class="feature category-page-product-feature product-feature-{{forloop.counter}}">
+                                                <div class="feature-product-{{forloop.counter}} feature-name">{{feature | lower | capfirst}}</div>
+                                                        
+                                                <div class="feature-product-{{forloop.counter}}-rating rating category-page-rating">
+                                                <p style="margin-bottom: 0; margin-right: 0.7rem; {% if score <= 3.3 %} color: #ff6060; {% elif score > 3.3 and score <= 6.7 %} color: #fbad05; {% else %} color: #40cd85; {% endif %}">{{score}}</p>
+                                                    <div class="guage-box feature-guage-box">
+                                                        <div id="g{{products.product.pk}}{{forloop.counter|add:1000}}" class="gauge gauge-1">
+                                                        {{ gauge_feature|svg_value:score | safe}}
+                                                        </div>
+                                                    </div>
+                                                    {% comment %} <script>
+                                                        var score_product = {{score|floatformat:1}}
+                                                        if (score_product <= 3.3 ) {
+                                                            color_code = '#ff6060';
+                                                        } else if (score_product > 3.3 && score_product <= 6.7) {
+                                                            color_code = '#fbad05';
+                                                        } else {
+                                                            color_code = '#40cd85';
+                                                        }
+                                                        var g1 = new JustGage({
+                                                            id: 'g{{products.product.pk}}{{forloop.counter|add:1000}}',
+                                                            value: {{score}},
+                                                            decimals: 1,
+                                                            valueFontColor: '#000000',
+                                                            valueMinFontSize: 60,
+                                                            min: 0,
+                                                            max: 10,
+                                                            pointerOptions: {
+                                                            toplength: 8,
+                                                            bottomlength: -20,
+                                                            bottomwidth: 6,
+                                                            color: color_code,
+                                                            
+                                                            },
+                                                            gaugeWidthScale: 0.4,
+                                                            counter: false,
+                                                            relativeGaugeSize: true,
+                                                            donut: true,
+                                                            levelColors: [color_code],
+                                                            hideValue: true,
+                                                            relativeGaugeSize: true,
+                                                            gaugeWidthScale: 1.2,
+                                                        });
+                                                    </script> {% endcomment %}
+                                                </div>
+                                                
+                                            </div>
+                                        {% endfor %}
+                                        {% endwith %}
+                                    {% endifnotequal  %}
+                                {% endspaceless %}
+                            </div>
+                        </div>
+                   
+        
+                        <hr>
+                        
+                        <div class="pros-cons category-page-pros-cons">
+                            {% with pros_cons_dict=products.product.pros_cons|strtodict %}
+                                <div class="pros category-page-pros">
+                                    {% if pros_cons_dict.pros|length > 0  %}
+                                        {% if pros_cons_dict.pros.0 != '' %}
+                                        <h4>Pros</h4>
+                                        {% endif %}
+                                        {% spaceless %}
+                                            <ul>
+                                                {% for i in pros_cons_dict.pros|slice:3 %}
+                                                    {% if i != '' %}
+                                                        <li>{{i|removewhitespaces}}</li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        {% endspaceless %}
+                                    {% endif %}
+                                </div>
+        
+                                <div class="cons category-page-cons">
+                                    {% if pros_cons_dict.cons|length > 0  %}
+                                        {% if pros_cons_dict.cons.0 != '' %}
+                                        <h4>Cons</h4>
+                                        {% endif %}
+                                        {% spaceless %}
+                                            <ul>
+                                                {% for i in pros_cons_dict.cons|slice:3 %}
+                                                    {% if i != '' %}
+                                                        <li>{{i|removewhitespaces}}</li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        {% endspaceless %}
+                                    {% endif %}
+                                </div>
+                            {% endwith %}
+                        </div>
+                    </article>
+                {% endfor %}
+            {%endspaceless%}
+            
+        </div>
+        
+        <section style="background-color: white;">
+
+        {% if feature_wise_top_products %}
+            <div class="category-feature-wise-top-products twelve-division" style="max-width: 1500px;">
+                <h2>Feature wise top {{category}}</h2>
+                {% spaceless %}
+                        {% for feature, raw_rank_wise_product_list in feature_wise_top_products.items %}
+                        {% with rank_wise_product_list=raw_rank_wise_product_list|remove_null %}
+                            {% if forloop.counter < 5 %}
+                                <div class="feature-winner-{{forloop.counter}} winner">
+                                    <div class="category-winner-image-feature" title="{{feature.name}}">
+                                        {% if feature.feature_icon %}<img src="{{feature.feature_icon}}">{% else %} <img src="{% static 'catalog/images/ic-satisfaction.png' %}" alt="{{ category.label }} : {{ feature.name}}"> {% endif %}
+                                        <h3>{{feature.name|wordwrap:25}}</h3>
+                                    </div>
+
+                                    <div class="category-winner-product-image"  onclick="window.location.href = '{% url 'product-detail-slug-view' rank_wise_product_list.0.product.category.category_slug rank_wise_product_list.0.product.product_slug %}'" style="cursor: pointer; position: relative;">
+                                        {% spaceless %}
+                                            {% for product in featured_category_products %}
+                                                {% if rank_wise_product_list.0.product.id == product.product.id %}
+                                                    <img src="{% if product.productImg.large_image_snippet %}{{product.productImg.large_image_snippet}}{% elif product.large_image_snippet %}{{product.large_image_snippet}}{% else %}{% static 'catalog/images/no-image.png' %}{% endif %}" 
+                                                    onerror="error(this,'error')" class="winner-product-image" alt="{% if product.productImg.product.name %}{{product.productImg.product.name}}{% else %}{{product.product.name}}{% endif %}">
+                                                {% endif %}
+                                            {% endfor %}
+                                        {% endspaceless %}
+                                        
+                                        <img src="{% static 'catalog/images/group-19.png' %}" class="Group-19 gro-img" alt="winner-product-image-alt">
+                                    </div>
+                                {% if rank_wise_product_list.0 %}
+                                    <div class="category-winner-product-name">
+                                        <a href="{% url 'product-detail-slug-view' rank_wise_product_list.0.product.category.category_slug rank_wise_product_list.0.product.product_slug %}" style="text-decoration: none;"><p title="{{rank_wise_product_list.0.product.name}}">{% if rank_wise_product_list.0.product.label %}{{rank_wise_product_list.0.product.label|wordwrap:30}}{% else %}{{rank_wise_product_list.0.product.name|wordwrap:30}}{% endif %}</p></a>
+                                    </div>
+                                {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                        {% endfor %}
+                {% endspaceless %}
+            </div>
+        {% endif %}
+        
+    </section>
+    <!-- {% if assortments %}
+        <div class="category-browse-by twelve-division smartphone-category-browse" >
+            <p class="browse-by-mob">Browse by</p>
+            <ul>
+                <p class="browse-by-desk">Browse by</p>
+                <a href="/{{category.category_slug}}" id="link1" style="outline: none; text-decoration: none;"><li {% ifequal request.GET.feature None %} class="active" {% endifequal %}>All</li></a>
+
+                {% spaceless %}
+                    {% for child in assortments %}
+                            <a href="{% url 'child-category-detail-slug-view' child.category.category_slug child.child_category_slug %}" style="outline: none; text-decoration: none; "><li>{{child.name}}</li></a>
+                    {% endfor %}
+                {% endspaceless %}
+            </ul>
+        </div>
+    {% endif %} -->
+        <div class="category-top-3-products twelve-division" style="max-width: 1500px;margin: auto;">
+            {% spaceless %}
+                {% for products in category_products|slice:"3:" %}
+                    <article class="product-div category-top-product-{{forloop.counter}} top-product-{{forloop.counter}} category-product-div later-category-product-div hide">
+                         <div class="rank-card card-category">
+	                            <span class="rank-text card-category-text">RANK</span>
+	                            <p class="product-rank card-category-rank"><span class="hash card-category-hash">#</span>{% category_page_rank_product page_num page_len forloop.counter|add:3 %}</p>
+	                        </div>
+
+        
+        
+                        <div class="product-image category-page-product-image">
+                            <img src="{% if products.productImg.large_image_snippet %}{{products.productImg.large_image_snippet}}{% elif products.large_image_snippet %}{{products.large_image_snippet}}{% else %}{% static 'catalog/images/no-image.png' %}{% endif %}" onerror="error(this,'error')" alt="Image of {{products.product.name|wordwrap:30}}: Bestviewsreviews"  onclick="window.open('{{products.product.buy_url}}')" style="cursor: pointer;">
+                        </div>
+        
+                        <div class="product-general-info">
+                            <a href="{% url 'product-detail-slug-view' category.category_slug products.product.product_slug %}" style="text-decoration: none;"><h2 class="product-name" title="{{products.product.name}}" style=" text-overflow: ellipsis;
+                                display: -webkit-box;
+                                -webkit-line-clamp: 3;
+                                -webkit-box-orient: vertical;
+                                overflow: hidden;">{% if products.product.label %}{{products.product.label|wrapByWord:"15,100"}}{% else %}{{products.product.name|wrapByWord:"15,100"}}{% endif %}</h2></a>
+                            <!-- <div class="product-feature">3GB RAM, AMOLED Display, 32GB Storage, 4000mAH</div> -->
+
+                            <!-- <div class="product-feature">
+                                {% if products.product.specification %}
+                                {{products.product.specification|safe|wordwrap:60}}
+                                {% endif %}
+                            </div> -->
+
+
+                            <div class="product-price">{% if products.product.price %}{{products.product.price}}{% else %} Price NA {% endif %}</div>
+                            <div class="buy-now-compare">
+                                <a href="{{products.product.buy_url}}" target="_blank"><button type="button" class="btn btn-primary">Buy on Amazon*</button></a>
+                                <!-- <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input" id="defaultChecked2">
+                                    <label class="custom-control-label" for="defaultChecked2">Add to Compare</label>
+                                </div> -->
+                            </div>
+                        </div>
+                            
+                        <div class="overall-score category-page-overall-score">
+                            <div class="guage-box category-page-guage-box">
+                                <div id="g{{forloop.counter|add:15}}" class="gauge gauge-1">
+                                {{ gauge_overall|svg_value:products.product.score_out_of_10 | safe}}
+                                </div>
+                            </div>
+                            {% comment %} <script>
+                                var score_product = {{products.product.score_out_of_10|floatformat:1}}
+                                //score_product = score_product * 0.4 + 6
+                                if (score_product <= 3.3 ) {
+                                    color_code = '#ff6060';
+                                } else if (score_product > 3.3 && score_product < 6.7) {
+                                    color_code = '#fbad05';
+                                } else {
+                                    color_code = '#40cd85';
+                                }
+                                var g1 = new JustGage({
+                                    id: 'g{{forloop.counter|add:15}}',
+                                    value: {{products.product.score_out_of_10}},
+                                    decimals: 1,
+                                    valueFontColor: '#000000',
+                                    valueMinFontSize: 60,
+                                    min: 0,
+                                    max: 10,
+                                    pointerOptions: {
+                                    toplength: 8,
+                                    bottomlength: -20,
+                                    bottomwidth: 6,
+                                    color: color_code,
+                                    
+                                    },
+                                    gaugeWidthScale: 0.4,
+                                    counter: true,
+                                    relativeGaugeSize: true,
+                                    donut: true,
+                                    levelColors: [color_code]
+                                });
+                            </script> {% endcomment %}
+                            <div class="overall-text cat-overall">Overall BVR Rating <br/>
+                                <div class="number-of-reviews">
+                                    <span>Based on {{products.product.total_reviews_count}} reviews</span>
+                                </div>
+                            </div>
+                        </div>
+        
+                        <div class="product-other-info category-page-product-other-info">
+                            <div class="product-features cat-feat">
+                                {% spaceless %}
+                                {% ifnotequal request.GET.feature None %}
+                                    {% with feature_score_dict=products.product.features|make_dict:request.GET.feature %}
+                                        {% for feature, score in feature_score_dict.items %}
+                                            <div class="feature category-page-product-feature product-feature-{{forloop.counter}}">
+                                                <div class="feature-product-{{forloop.counter}} feature-name">{{feature | lower | capfirst}}</div>
+                                                        
+                                                <div class="feature-product-{{forloop.counter}}-rating rating category-page-rating">
+                                                <p style="margin-bottom: 0; margin-right: 0.7rem; {% if score <= 3.3 %} color: #ff6060; {% elif score > 3.3 and score <= 6.7 %} color: #fbad05; {% else %} color: #40cd85; {% endif %}">{{score}}</p>
+                                                    <div class="guage-box feature-guage-box">
+                                                        <div id="g{{products.product.pk}}{{forloop.counter|add:1000}}" class="gauge gauge-1">
+                                                        {{ gauge_feature|svg_value:score | safe}}
+                                                        </div>
+                                                    </div>
+                                                    {% comment %} <script>
+                                                        var score_product = {{score|floatformat:1}}
+                                                        //score_product = score_product * 0.4 + 6                                                        
+                                                        if (score_product <= 3.3 ) {
+                                                            color_code = '#ff6060';
+                                                        } else if (score_product > 3.3 && score_product <= 6.7) {
+                                                            color_code = '#fbad05';
+                                                        } else {
+                                                            color_code = '#40cd85';
+                                                        }
+                                                        var g1 = new JustGage({
+                                                            id: 'g{{products.product.pk}}{{forloop.counter|add:1000}}',
+                                                            value: {{score}},
+                                                            decimals: 1,
+                                                            valueFontColor: '#000000',
+                                                            valueMinFontSize: 60,
+                                                            min: 0,
+                                                            max: 10,
+                                                            pointerOptions: {
+                                                            toplength: 8,
+                                                            bottomlength: -20,
+                                                            bottomwidth: 6,
+                                                            color: color_code,
+                                                            
+                                                            },
+                                                            gaugeWidthScale: 0.4,
+                                                            counter: false,
+                                                            relativeGaugeSize: true,
+                                                            donut: true,
+                                                            levelColors: [color_code],
+                                                            hideValue: true,
+                                                            relativeGaugeSize: true,
+                                                            gaugeWidthScale: 1.2,
+                                                        });
+                                                    </script> {% endcomment %}
+                                                </div>
+                                                
+                                            </div>
+                                        {% endfor %}
+                                    {% endwith %}
+                                {% else %}
+                                    {% with feature_score_dict=products.product.features|make_dict:'' %}
+                                    {% for feature, score in feature_score_dict.items %}
+                                        <div class="feature category-page-product-feature product-feature-{{forloop.counter}}">
+                                            <div class="feature-product-{{forloop.counter}} feature-name">{{feature | lower | capfirst}}</div>
+                                                    
+                                            <div class="feature-product-{{forloop.counter}}-rating rating category-page-rating">
+                                            <p style="margin-bottom: 0; margin-right: 0.7rem; {% if score <= 3.3 %} color: #ff6060; {% elif score > 3.3 and score <= 6.7 %} color: #fbad05; {% else %} color: #40cd85; {% endif %}">{{score}}</p>
+                                                <div class="guage-box feature-guage-box">
+                                                    <div id="g{{products.product.pk}}{{forloop.counter|add:1000}}" class="gauge gauge-1">
+                                                    {{ gauge_feature|svg_value:score | safe}}
+                                                    </div>
+                                                </div>
+                                                {% comment %} <script>
+                                                    var score_product = {{score|floatformat:1}}
+                                                    //var score_product = {{score|floatformat:1}}                                                    
+                                                    if (score_product <= 3.3 ) {
+                                                        color_code = '#ff6060';
+                                                    } else if (score_product > 3.3 && score_product <= 6.7) {
+                                                        color_code = '#fbad05';
+                                                    } else {
+                                                        color_code = '#40cd85';
+                                                    }
+                                                    var g1 = new JustGage({
+                                                        id: 'g{{products.product.pk}}{{forloop.counter|add:1000}}',
+                                                        value: {{score}},
+                                                        decimals: 1,
+                                                        valueFontColor: '#000000',
+                                                        valueMinFontSize: 60,
+                                                        min: 0,
+                                                        max: 10,
+                                                        pointerOptions: {
+                                                        toplength: 8,
+                                                        bottomlength: -20,
+                                                        bottomwidth: 6,
+                                                        color: color_code,
+                                                        
+                                                        },
+                                                        gaugeWidthScale: 0.4,
+                                                        counter: false,
+                                                        relativeGaugeSize: true,
+                                                        donut: true,
+                                                        levelColors: [color_code],
+                                                        hideValue: true,
+                                                        relativeGaugeSize: true,
+                                                        gaugeWidthScale: 1.2,
+                                                    });
+                                                </script> {% endcomment %}
+                                            </div>
+                                            
+                                        </div>
+                                    {% endfor %}
+                                    {% endwith %}
+                                {% endifnotequal %}
+                                {% endspaceless %}
+                            </div>
+                        </div>
+        
+                        <hr>
+                        
+                        <div class="pros-cons category-page-pros-cons">
+                            {% with pros_cons_dict=products.product.pros_cons|strtodict %}
+                                <div class="pros category-page-pros">
+                                    {% if pros_cons_dict.pros|length > 0  %}
+                                        {% if pros_cons_dict.pros.0 != '' %}
+                                        <h4>Pros</h4>
+                                        {% endif %}
+                                        {% spaceless %}
+                                            <ul>
+                                                {% for i in pros_cons_dict.pros|slice:3 %}
+                                                    {% if i != '' %}
+                                                        <li>{{i|removewhitespaces}}</li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        {% endspaceless %}
+                                    {% endif %}
+                                </div>
+        
+                                <div class="cons category-page-cons">
+                                    {% if pros_cons_dict.cons|length > 0  %}
+                                        {% if pros_cons_dict.cons.0 != '' %}
+                                        <h4>Cons</h4>
+                                        {% endif %}
+                                        {% spaceless %}
+                                            <ul>
+                                                {% for i in pros_cons_dict.cons|slice:3 %}
+                                                    {% if i != '' %}
+                                                        <li>{{i|removewhitespaces}}</li>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </ul>
+                                        {% endspaceless %}
+                                    {% endif %}
+                                </div>
+                            {% endwith %}
+                        </div>
+                    </article>
+                {% endfor %}
+            {%endspaceless%}
+        </div>
+
+
+        <div class="see-more-button twelve-division btn-up" style="max-width: 1500px;margin: auto;">
+	            <button type="button" class="btn btn-primary btn-category" name="see_more_button" id="see_more_button">See More Products</button>
+              <button type="button" class="btn btn-primary  btn-category" name="see_more_button" id="see_more_button_page" style="display:none;">See More Products</button>
+
+	    </div>
+
+        {% if blog_title %}
+            <section style="background-color: white;">    
+                <article class="category-blog-section twelve-division"style="max-width: 1500px;margin: auto;">
+                    
+                    <h3 class="guide">{{blog_title | capfirst}}</h3>
+                        
+                    {{blog_content|safe | capfirst}}
+                    
+                    {% comment %} <div class="stay-up-to-date">
+                        <h3>Stay up-to-date</h3>
+                        <p>Get notified about the latest Beach cruisers right in your inbox</p>
+                        <form action="" method="POST">
+                            {% csrf_token %}
+                            <input type="email" id="email" name="email" class="subscribe-email" placeholder="Enter your email address" required>
+                            <button type="button" id="subscribe_button category-subscribe-button" value="Subscribe" class="btn btn-primary category-subscribe-button">Subscribe</button>
+                        </form>
+                    </div>
+
+                    <div class="cant-find-product">
+                        <h3>Can’t find a product?</h3>
+                        <p>Submit the product’s URL from Amazon and we’ll tell you everything about the product</p>
+                        <form action="">
+                            <input type="url" id="amazon_url" name="amazon_url" class="subscribe-email" placeholder="Product’s amazon URL">
+                            <button type="button" id="submit_url" class="btn btn-primary category-submit-url-button">Submit URL</button>
+                        </form>
+                    </div> {% endcomment %}
+                    
+                </article>
+            </section>
+        {% endif %}
+
+    <section style="max-width: 5000px; background-color: #2B3541;">
+        <div class="twelve-division" style="max-width: 1500px; margin: auto; padding-bottom: 0;">
+                <div class="cant-find-product_new category-page-cant-find-div" id="flex-cant-find-product">
+                    <h3 id="a_fixed">Need help? Don't see what you are looking for?</h3>
+                    <p id="b_fixed">Let us know and our team will start working on your favorite product or category as soon as possible. Meanwhile let us help you search for them on Amazon.</p>
+                    <form action="" id="c_fixed">
+                        <input type="text" id="pro_name_fixed" name="product_name" placeholder="Search">
+                        <button type="submit" id="submit_pro_name_fixed" class="btn btn-primary">Search on Amazon</button>
+                    </form>
+                </div>
+        </div>
+    </section>
+
+        {% comment %} <h2 style="margin-left:50%" >Modal Example</h2> {% endcomment %}
+
+        <!-- Trigger/Open The Modal -->
+        {% comment %} <button id="myBtn" style="margin-left:50%">Open Modal</button> {% endcomment %}
+
+        <!-- The Modal -->
+        <div id="myModal" class="modal">
+
+            <!-- Modal content -->
+            <div class="modal-content-cant-find-product_new">
+                {% comment %} <span class="close">&times;</span> {% endcomment %}
+                <img src="{% static 'catalog/images/ic_cancel_vector_svg.svg' %}" class="close" id="modal-close" style= "cursor: pointer;">
+                <h3 id="a_modal">Need help? Don't see what you are looking for?</h3>
+                <form action="" id = "c_modal">
+                    <input type="text" id="pro_name_modal" name="product_name" placeholder="Search">
+                    <button type="submit" id="submit_pro_name_modal" class="btn btn-primary">Search on Amazon</button>
+                </form>
+                <p id="b_modal">Let us know and our team will start working on your favorite product or category as soon as possible. Meanwhile let us help you search for them on Amazon.</p>
+                <hr>
+                <u id="modal-no-thanks" style= "cursor: pointer;">No thanks</u>
+            </div>
+
+        </div>
+    
+{% endblock %}  
+
+{% block scripts %}
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script>
+        function seemorefeat() {
+            $('#category-seemore').css('display', 'none')
+            $('.inactive-feat').css('visibility', 'visible')
+            $('.inactive-feat').css('display', 'block')
+            $('#category-seeless').css('visibility', 'visible')
+            $('#category-seeless').css('display', 'block')
+            } ;
+
+        function seelessfeat() {
+            $('#category-seeless').css('visibility', 'hidden')
+            $('#category-seemore').css('display', 'block')
+            $('.inactive-feat').css('visibility', 'hidden')
+            $('.inactive-feat').css('display', 'none')
+            $('#category-seeless').css('display', 'none')
+            } ;
+
+    </script>
+    <script>
+        function seemorefeatmobile() {
+            $('#category-seemore-mobile').css('display', 'none')
+            $('.inactive-feat-mobile').css('visibility', 'visible')
+            $('.inactive-feat-mobile').css('display', 'block')
+            $('#category-seeless-mobile').css('visibility', 'visible')
+            $('#category-seeless-mobile').css('display', 'block')
+            } ;
+        function seelessfeatmobile() {
+            $('#category-seeless-mobile').css('visibility', 'hidden')
+            $('#category-seemore-mobile').css('display', 'block')
+            $('.inactive-feat-mobile').css('visibility', 'hidden')
+            $('.inactive-feat-mobile').css('display', 'none')
+            $('#category-seeless-mobile').css('display', 'none')
+            } ;
+
+      
+
+    </script>
+    <script>
+        var slideIndex = 1;
+        showSlides(slideIndex);
+        
+        // Next/previous controls
+        function plusSlides(n) {
+        showSlides(slideIndex += n);
+        }
+
+        // Thumbnail image controls
+        function currentSlide(n) {
+        showSlides(slideIndex = n);
+        }
+     
+        function showSlides(n) {
+        var i;
+        
+        var slides = document.getElementsByClassName("mySlides");
+        var dots = document.getElementsByClassName("dot");
+        if (n > slides.length) {slideIndex = 1}
+        if (n < 1) {slideIndex = slides.length}
+        for (i = 0; i < slides.length; i++) {
+            slides[i].style.display = "none";
+        }
+        for (i = 0; i < dots.length; i++) {
+            dots[i].className = dots[i].className.replace(" active", "");
+        }
+        slides[slideIndex-1].style.display = "flex";
+        dots[slideIndex-1].className += " active";
+        } 
+
+    </script>
+    
+
+
+    <script>
+        $(".category-top-3-products").ready(function(){
+            var limit = 5;
+            var length_product_set = Number("{{category_products|length}}");
+            var page_num = Number("{{page_num}}")
+            var total_no_of_pages = Number("{{total_no_of_pages}}")
+
+            if (length_product_set <= 8) {
+                $('#see_more_button').hide();
+            }
+
+            $(".later-category-product-div").slice(0, limit).removeClass('hide').slideDown(0);
+            $("#see_more_button").on('click',function(e){
+                e.preventDefault();
+                limit += 5;
+               
+                $(".later-category-product-div").slice(0, limit).removeClass('hide').slideDown('fast');
+
+                if (limit >= length_product_set-3) {
+                    $('#see_more_button').hide();
+                    if (page_num < total_no_of_pages){
+                        $('#see_more_button_page').show();
+                        var modal_time = getCookie("modal_form");
+                        console.log(modal_time);
+                        if (modal_time === undefined){
+                            var d_now = new Date();
+                            setCookie("modal_form", d_now, 0.5);
+                            $('#myModal').show();
+                        }
+                        else{
+                            var d = new Date(modal_time);
+                            var d_now = new Date();
+                            const difftime =d_now-d;
+                            var hr = Math.floor(difftime/(60*60*1000))
+                            console.log(hr);
+                            if(hr >= 12){
+                                setCookie("modal_form", d_now, 0.5);
+                                $('#myModal').show();
+                            }
+                            console.log(difftime);
+                        }                       
+                        $('#see_more_button_page').click(function() {
+                            var current_url = new URL(window.location.href)
+                            current_url.searchParams.delete("page");
+                            if (current_url.search != ""){
+                                next_url = current_url.href + "&page="+ {{page_num|add:1}};
+                            }
+                            else{
+                                next_url = current_url.href + "?page=" + {{page_num|add:1}};;
+                            }
+                            window.location = next_url;
+                        });
+
+                    }
+                    
+                }
+            });
+
+            $('.ic_search_mob').click(function(){
+                $(".mob-search-form").toggle("slow", function(){
+                });
+            })
+
+            $('#subscribe_button').click(function(){
+                var email_id = $('#email').val();
+
+                $.ajax({
+                    url: '{% url "multi-form-submit" %}',
+                    data: {
+                        'email_id': email_id,
+                        'type': "subscription"
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        alert(data['status']);
+                    }
+                })
+
+                $("#email").trigger('reset');
+
+            });
+
+            $('#submit_url').click(function(){
+                var amazon_url = $('#amazon_url').val();
+
+                $.ajax({
+                    url: '{% url "multi-form-submit" %}',
+                    data: {
+                        'amazon_url': amazon_url,
+                        'type': "submit_url",
+                        'region': "{{category.region}}"
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        alert(data['status']);
+                    }
+                })
+
+                $("#amazon_url").trigger('reset');
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function(e) {
+            
+            $('#c_fixed').submit(function(e){
+                var product_name = $('#pro_name_fixed').val();
+                if (product_name == "" || product_name == null) {
+                    alert("Name must be filled out");
+                    return false;
+                }
+                e.preventDefault();
+
+                $.ajax({
+                    url: '{% url "product-not-found-form" %}',
+                    data: {
+                        'product_name': product_name,
+                        'type': "Fixed_Form-Product_Not_Found",
+                        'form_on_page': "{{request.get_full_path}}",
+                        'region': "{{category.region}}"
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        window.open(data['url']);
+                        window.location.href='{% url "thank-you" %}';
+                    }
+                })
+
+                $("#pro_name_fixed").trigger('reset');
+            });
+
+            $('#c_modal').submit(function(e){
+                var product_name = $('#pro_name_modal').val();
+                if (product_name == "" || product_name == null) {
+                    alert("Name must be filled out");
+                    return false;
+                }
+                e.preventDefault();
+
+                $.ajax({
+                    url: '{% url "product-not-found-form" %}',
+                    data: {
+                        'product_name': product_name,
+                        'type': "Modal_Form-Product_Not_Found",
+                        'form_on_page': "{{request.get_full_path}}",
+                        'region': "{{category.region}}"
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                        window.open(data['url']);
+                        window.location.href='{% url "thank-you" %}';
+                    }
+                })
+
+                $("#pro_name_modal").trigger('reset');
+            });
+        });
+
+    </script>
+
+    <script>
+        // Get the modal
+        var modal = document.getElementById("myModal");
+
+        // Get the button that opens the modal
+        //var btn = document.getElementById("myBtn");
+
+        // Get the <span> element that closes the modal
+        var modalclose = document.getElementById("modal-close");
+        var modalnothanks = document.getElementById("modal-no-thanks");
+
+        // When the user clicks the button, open the modal 
+        //btn.onclick = function() {
+        //modal.style.display = "block";
+        //}
+
+        // When the user clicks on <span> (x), close the modal
+        modalclose.onclick = function() {
+        modal.style.display = "none";
+        }
+
+        modalnothanks.onclick = function() {
+        modal.style.display = "none";
+        }
+
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+        }
+
+        //window.onbeforeunload = function(event) {
+        //modal.style.display = "block";
+        //event.preventDefault();
+        //};
+
+    </script>
+
+
+{% endblock %}
+
+{% block footer %}
+{% endblock %}
+
